@@ -213,3 +213,93 @@ class TestPandas(unittest.TestCase):
         except Exception as e:
             print("Error executing statement select")
             print(e)
+
+    def str_to_date(self, str_date):
+        #2020-01-17
+        new_date = []
+        if isinstance(str_date, pd.Series):
+            for idx, value in str_date.items():
+                new_date.append(self.str_to_date(value))
+            # new_date = pd.Series
+        elif str_date is not None and len(str_date) > 0:
+            date_parts = str_date.split('-')
+            new_date = pd.Timestamp(year=int(date_parts[0]), month=int(date_parts[1]), day=int(date_parts[2]))
+        return new_date
+
+    def consent_to_boolean(self, str_consent):
+        # Consent provided        550741
+        # Consent not provided    413454
+        # Other                    36723
+        # Consent withdrawn         1966
+        new_consent = []
+        for idx, value in str_consent.items():
+            if value == 'Consent provided':
+                new_consent.append(True)
+            elif value == 'Other':
+                new_consent.append(np.nan)
+            else:
+                new_consent.append(False)
+
+    def test_pulizia_dati(self):
+        filepath = self.BASE_PATH + "/mockups/complaints.csv"
+        df = pd.read_csv(filepath)
+        # Prendiamo l'informazione dell'attuale dataframe
+        print(df.info())
+        print("\n")
+        print(df[['Date received', 'Product', 'Sub-product']].head())
+        print(df[['Issue', 'Sub-issue', 'Company', 'State']].head())
+        print(df[['Consumer complaint narrative', 'Company public response']].head())
+        print(df[['ZIP code', 'Tags', 'Consumer consent provided?', 'Submitted via', 'Date sent to company', 'Company response to consumer']].head())
+        # Come questi dati sono nulli per le prime righe, filtriamo per quelli che non sia nulli e le visualiziamo
+        print(df[df['Consumer disputed?'].notna()]['Consumer disputed?'].head())
+        print(df[df['Tags'].notna()]['Tags'].head())
+        """
+        Date received --> pandas.Timestamp
+        Product       --> pandas.StringDType()
+        Sub-product   --> pandas.StringDType()
+        Issue         --> pandas.StringDType()
+        Sub-issue     --> pandas.StringDType()
+        Consumer complaint narrative  --> pandas.StringDType()
+        Company public response       --> pandas.StringDType()
+        Company       --> pandas.StringDType()
+        State         --> pandas.StringDType()
+        ZIP code      --> pandas.StringDType()
+        Tags          --> pandas.StringDType()
+        Consumer consent provided?    --> pandas.BooleanDtype()
+        Submitted via                 --> pandas.StringDType()
+        Date sent to company          --> pandas.Timestamp
+        Company response to consumer  --> pandas.StringDType
+        Timely response?              --> pandas.BooleanDtype()
+        Consumer disputed?            --> pandas.BooleanDtype()
+        """
+        date_recieved = df['Date received']
+        # date_recieved.transform(self.str_to_date)
+
+        new_data = self.str_to_date(date_recieved)
+        new_date_recieved = pd.Series(name='Date received', data=new_data)
+        print(new_date_recieved)
+        df['Date received'] = new_date_recieved
+
+        product = pd.Series(data=df['Product'], dtype=pd.StringDtype())
+        print(product)
+        df['Product'] = product
+        
+        sproduct = pd.Series(data=df['Sub-product'], dtype=pd.StringDtype())
+        print(sproduct)
+        df['Sub-product'] = sproduct
+
+        issue = pd.Series(data=df['Issue'], dtype=pd.StringDtype())
+        print(issue)
+        df['Issue'] = issue
+        
+        consent_provided = df['Consumer consent provided?']
+        print(consent_provided.value_counts())
+
+        new_data = self.consent_to_boolean(consent_provided)
+        new_consent = pd.Series(name='Consent provided', data=new_data)
+        df['Consumer consent provided?'] = new_consent
+
+        print(df.info())
+
+    
+        

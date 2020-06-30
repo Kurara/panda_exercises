@@ -10,7 +10,7 @@
             "request": "launch",
             "module": "unittest",
             "args": [
-                "test.TestPandas.test_clara"
+                "test.TestPandas.test_pulizia_dati"
             ]
         }
     ]
