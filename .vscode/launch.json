@@ -5,10 +5,13 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Python: Modulo",
+            "name": "Python: Test",
             "type": "python",
             "request": "launch",
-            "module": "unittest"
+            "module": "unittest",
+            "args": [
+                "test.TestPandas.test_clara"
+            ]
         }
     ]
 }

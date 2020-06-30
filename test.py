@@ -174,14 +174,19 @@ class TestPandas(unittest.TestCase):
         print('\n')
         valori_nulli = df[df['Sub-issue'].isnull()]
         print("Tutti dati:\n", df.count())
-        print("Dati con colonna nulle:\n", valori_nulli.count())
+        print("Dati con colonne nulle:\n", valori_nulli.count())
         print("Describe:\n", df['ZIP code'].describe())
         print("Describe:\n", df['Complaint ID'].describe())
         print("Soltanto colonna Product count:\n", df['Product'].value_counts())
         print('\n')
 
     def test_velocita_con_database(self):
+        """ Selezioniamo la lista dei numeri di Sottoprodotto/Sub-product
+        per il prodotto/Product 'Mortgage'
+
+        """
         import time
+        from mariadb import MariaDBManagement
         filepath = self.BASE_PATH + "/mockups/complaints.csv"
         df = pd.read_csv(filepath)
         
@@ -189,9 +194,22 @@ class TestPandas(unittest.TestCase):
         sotto_prodotti = df[df['Product']=='Mortgage']['Sub-product']
         print(sotto_prodotti)
         print("\n")
-        print("Query fatta in {} seconds".format(time.time() - start))
         print(sotto_prodotti.value_counts())
+        print("PANDAS: Query fatta in {} seconds".format(time.time() - start))
+       
         # Altro modo di farlo:
         df.query('Product == "Mortgage"')['Sub-product'].value_counts()
 
-        """SELECT r.Sottoprodotto, count(*) FROM Reclami r where Prodotto = 'Mortgage' GROUP by r.Sottoprodotto"""
+        self.conection = MariaDBManagement()
+        self.conection.connect_db("complaints")
+
+        _cursor = self.cnx.cursor()
+        try:
+            start = time.time()
+            _cursor.execute("""SELECT r.Sottoprodotto, count(*) FROM Reclami r 
+                    where Prodotto = 'Mortgage' GROUP by r.Sottoprodotto""")
+            rows = _cursor.fetchmany(size=200)
+            print("MARIADB: Query fatta in {} seconds".format(time.time() - start))
+        except Exception as e:
+            print("Error executing statement select")
+            print(e)
