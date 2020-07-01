@@ -274,6 +274,7 @@ class TestPandas(unittest.TestCase):
         """
         date_recieved = df['Date received']
         # date_recieved.transform(self.str_to_date)
+        date_recieved.map(self.str_to_date)
 
         new_data = self.str_to_date(date_recieved)
         new_date_recieved = pd.Series(name='Date received', data=new_data)
@@ -301,5 +302,44 @@ class TestPandas(unittest.TestCase):
 
         print(df.info())
 
-    
+    def color_negative_red(val):
+        """
+        Takes a scalar and returns a string with
+        the css property `'color: red'` for negative
+        strings, black otherwise.
+        """
+        color = 'red' if val <= 0 else 'black'
+        return 'color: %s' % color
         
+    def test_style(self):
+        # https://pandas.pydata.org/pandas-docs/stable/user_guide/style.html
+        filepath = self.BASE_PATH + "/mockups/time_series_covid19_confirmed_global.csv"
+        codvid_df = pd.read_csv(filepath)
+
+        media = codvid_df['1/22/20'].mean()
+        moda = codvid_df['Country/Region'].mode()
+        # mode ritorna un Series e noi volgiamo un valore
+        moda_value = moda.array[0]
+
+        new_styler = codvid_df.style.applymap(lambda x: 'background-color: %s' % ('#D2D43E' if x<=media else 'orange'), subset=['1/22/20', '1/23/20'])
+        new_styler2 = new_styler.applymap(lambda x: 'color: %s' % ('red' if x==moda_value else 'white'), subset=['Country/Region'])
+        html_code = new_styler2.render()
+        with open('index.html', 'w') as f:
+            f.write(html_code)
+
+    def test_pivote(self):
+        df = pd.DataFrame({'foo': ['one', 'one', 'one', 'two', 'two',
+                           'two'],
+                   'bar': ['A', 'B', 'C', 'A', 'B', 'C'],
+                   'baz': [1, 2, 3, 4, 5, 6],
+                   'zoo': ['x', 'y', 'z', 'q', 'w', 't']})
+        print(df)
+
+        table = pd.pivot_table(df, values='D', index=['A', 'B'],
+                    columns=['C'], aggfunc=np.sum, fill_value=0)
+        print(table)
+
+    def test_multiindex(self):
+        df = pd.DataFrame([[1,2],[3,4]])
+        df.index = pd.MultiIndex.from_tuples([('a', 'b'), ('a', 'c')])
+        df.columns = ["x","y"]
