@@ -48,12 +48,11 @@ class TestPandas(unittest.TestCase):
         pass
 
     def test_pivotte(self):
-        filepath = self.BASE_PATH + "/mockups/train.csv"
-        sanfrancisco_df = pd.read_csv(filepath)
-
-        grouped = sanfrancisco_df.groupby(['Category', 'DayOfWeek']).Category.count()
+        #giorno piu crimini
+        grouped = self.sanfrancisco_df.groupby(['DayOfWeek']).Category.count().sort_values(ascending=False)
         print(grouped)
-        pivote = sanfrancisco_df.pivot_table(sanfrancisco_df, index=['Category'],
+        #altro
+        pivote = self.sanfrancisco_df.pivot_table(self.sanfrancisco_df, index=['Category'],
                     columns=['DayOfWeek'], aggfunc='count')  
         print(pivote)
         print(pivote['Address'])
@@ -63,4 +62,21 @@ class TestPandas(unittest.TestCase):
         new_pivote = transposed.transpose()
         print(new_pivote)
 
+    def test_multindex(self):
+        pivote_multi_index = self.sanfrancisco_df.pivot_table(
+            self.sanfrancisco_df, index=['Category', 'Descript'], aggfunc='max'
+        )
+        print(pivote_multi_index)
+
+    def test_crimine_piu_arresti(self):
+        print(self.sanfrancisco_df.groupby('Resolution').count()['Category'])
+
+        pivote_crimini_arresti = self.sanfrancisco_df.pivot_table(
+            self.sanfrancisco_df, index=['Category', 'Descript'], columns='Resolution', aggfunc='count'
+        )
+        print(pivote_crimini_arresti)
+        uni_index_pivote = pivote_crimini_arresti['Address'].sort_values(ascending=False)
+        print(uni_index_pivote)
+
+        print("Tabella finale:\n", uni_index_pivote.groupby(['ARREST', 'BOOKED ARREST']).sort_values(ascending=False))
     
