@@ -273,13 +273,13 @@ class TestPandas(unittest.TestCase):
         Consumer disputed?            --> pandas.BooleanDtype()
         """
         date_recieved = df['Date received']
-        # date_recieved.transform(self.str_to_date)
-        date_recieved.map(self.str_to_date)
+        new_date_recieved = date_recieved.map(self.str_to_date)
 
-        new_data = self.str_to_date(date_recieved)
-        new_date_recieved = pd.Series(name='Date received', data=new_data)
+        # new_data = self.str_to_date(date_recieved)
+        # new_date_recieved = pd.Series(name='Date received', data=new_data)
         print(new_date_recieved)
         df['Date received'] = new_date_recieved
+        print(df['Date received'])
 
         product = pd.Series(data=df['Product'], dtype=pd.StringDtype())
         print(product)
@@ -321,6 +321,16 @@ class TestPandas(unittest.TestCase):
         # mode ritorna un Series e noi volgiamo un valore
         moda_value = moda.array[0]
 
+        """ Nota:
+
+        if x<=media:
+            return  '#D2D43E'
+        else:
+            return 'orange'
+
+        '#D2D43E' if x<=media else 'orange'
+        '#D2D43E' ? x<=media : 'orange'
+        """
         new_styler = codvid_df.style.applymap(lambda x: 'background-color: %s' % ('#D2D43E' if x<=media else 'orange'), subset=['1/22/20', '1/23/20'])
         new_styler2 = new_styler.applymap(lambda x: 'color: %s' % ('red' if x==moda_value else 'white'), subset=['Country/Region'])
         html_code = new_styler2.render()
@@ -328,18 +338,39 @@ class TestPandas(unittest.TestCase):
             f.write(html_code)
 
     def test_pivote(self):
-        df = pd.DataFrame({'foo': ['one', 'one', 'one', 'two', 'two',
-                           'two'],
-                   'bar': ['A', 'B', 'C', 'A', 'B', 'C'],
-                   'baz': [1, 2, 3, 4, 5, 6],
-                   'zoo': ['x', 'y', 'z', 'q', 'w', 't']})
+        df = pd.DataFrame({
+                   "A": ["foo", "foo", "foo", "foo", "foo",
+                         "bar", "bar", "bar", "bar"],
+                   "B": ["one", "one", "one", "two", "two",
+                         "one", "one", "two", "two"],
+                   "C": ["small", "large", "large", "small",
+                         "small", "large", "small", "small",
+                         "large"],
+                   "D": [1, 2, 2, 3, 3, 4, 5, 6, 7],
+                   "E": [2, 4, 5, 5, 6, 6, 8, 9, 9]}
+        )
         print(df)
 
         table = pd.pivot_table(df, values='D', index=['A', 'B'],
                     columns=['C'], aggfunc=np.sum, fill_value=0)
-        print(table)
+        print("Pivote:\n", table)
+
+        table = pd.pivot_table(df, values='D', index=['A', 'B'],
+                    columns=['C'], aggfunc=np.sum, fill_value=0)
+        print("Agregata:\n", table)
 
     def test_multiindex(self):
         df = pd.DataFrame([[1,2],[3,4]])
+        print("Senza multiindex:\n", df)
         df.index = pd.MultiIndex.from_tuples([('a', 'b'), ('a', 'c')])
+        print("Con multiindex:\n", df)
         df.columns = ["x","y"]
+        html_code = df.style.apply('border-style: black').render()
+        with open('index.html', 'w') as f:
+            f.write(html_code)
+
+    def test_groupby(self):
+        filepath = self.BASE_PATH + "/mockups/time_series_covid19_confirmed_global.csv"
+        df = pd.read_csv(filepath)
+        print("Soltanto colonna Country/Region count:\n", df['Country/Region'].value_counts())
+        print("Con group by:\n", df.groupby('Country/Region')['Country/Region'].count().sort_values(ascending=False))
