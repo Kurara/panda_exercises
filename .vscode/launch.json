@@ -10,7 +10,16 @@
             "request": "launch",
             "module": "unittest",
             "args": [
-                "test.TestPandas.test_pulizia_dati"
+                "test.TestPandas.test_groupby"
+            ]
+        },
+        {
+            "name": "Python: Esercisi",
+            "type": "python",
+            "request": "launch",
+            "module": "unittest",
+            "args": [
+                "esercisi.TestPandas.test_crimine_piu_arresti"
             ]
         }
     ]

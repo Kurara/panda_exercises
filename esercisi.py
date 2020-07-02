@@ -35,10 +35,12 @@ class TestPandas(unittest.TestCase):
     def test_unire_colonne(self):
         self.sanfrancisco_df['Position'] = self.sanfrancisco_df['X']
         self.sanfrancisco_df.apply(self.join_lon_lat, axis=1)
-        print("Con la nuova colonna:\n", sanfrancisco_df)
+        # Questa funziona sotto dovrebbe funzionare ma non crea la colonna
+        # self.sanfrancisco_df.assign(Position=lambda df: '({}, {})'.format(df.X, df.Y), inplace=True)
+        print("Con la nuova colonna:\n", self.sanfrancisco_df)
 
-        self.sanfrancisco_df.drop_column(['X', 'Y'], axis=1)
-        print("Risultato:\n", sanfrancisco_df)
+        self.sanfrancisco_df.drop(['X', 'Y'], axis=1)
+        print("Risultato:\n", self.sanfrancisco_df)
 
     def test_crime_piu_comune(self):
         most_common = self.sanfrancisco_df.groupby(['Category', 'Descript'])['Category'].count()
@@ -69,14 +71,17 @@ class TestPandas(unittest.TestCase):
         print(pivote_multi_index)
 
     def test_crimine_piu_arresti(self):
+        import matplotlib.pyplot as plt
+
         print(self.sanfrancisco_df.groupby('Resolution').count()['Category'])
 
         pivote_crimini_arresti = self.sanfrancisco_df.pivot_table(
             self.sanfrancisco_df, index=['Category', 'Descript'], columns='Resolution', aggfunc='count'
         )
         print(pivote_crimini_arresti)
-        uni_index_pivote = pivote_crimini_arresti['Address'].sort_values(ascending=False)
-        print(uni_index_pivote)
+        uni_index_pivote = pivote_crimini_arresti['Address'].sort_values(by=['ARREST, BOOKED', 'ARREST, CITED'], ascending=False)
+        print("Tabella finale:\n", uni_index_pivote)   
 
-        print("Tabella finale:\n", uni_index_pivote.groupby(['ARREST', 'BOOKED ARREST']).sort_values(ascending=False))
-    
+        uni_index_pivote.plot() 
+
+        plt.show()
